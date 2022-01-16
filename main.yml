@@ -1,0 +1,20 @@
+---
+- hosts: dbserver
+  user: root
+  become: yes
+  tasks:
+    - include_tasks: ./tasks/db/deploy_mariadb.yml
+    - include_tasks: ./tasks/db/deploy_dependencies.yml
+    - include_tasks: ./tasks/db/deploy_safe_settings.yml
+    - include_tasks: ./tasks/db/deploy_db.yml
+
+- hosts: webserver
+  user: root
+  become: yes
+  tasks:
+    - include_tasks: ./tasks/web/deploy_nginx.yml
+    - include_tasks: ./tasks/web/deploy_php.yml
+    - include_tasks: ./tasks/web/deploy_settings.yml
+    - include_tasks: ./tasks/web/deploy_wordpress.yml
+#    - include_tasks: ./tasks/deploy_settings.yml
+#    - include_tasks: ./tasks/execute_wordpress_init.yml

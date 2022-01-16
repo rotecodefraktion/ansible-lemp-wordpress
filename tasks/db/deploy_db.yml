@@ -1,0 +1,16 @@
+- name: Create Wordpress Database
+  community.mysql.mysql_db:
+    name: "{{ wordpress_db_name }}"
+    login_user: root
+    login_password: "{{ root_db_password }}"
+    state: present
+- name: Create Wordpress Database Users
+  mysql_user:
+    name: "{{ wordpress_user }}"
+    password: "{{ wordpress_user_password }}"
+    priv: "{{ wordpress_db_name }}.*:ALL"
+    login_user: root
+    login_password: "{{ root_db_password }}"
+    state: present
+    host: "{{ item }}"
+  with_items: "{{ mariabdb_hosts_allowed }}"

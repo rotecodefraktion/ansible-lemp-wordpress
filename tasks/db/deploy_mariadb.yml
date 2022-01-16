@@ -1,0 +1,16 @@
+# tasks file for mysql_db
+-
+  name: Install MariaDB
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - mariadb-server
+    - mariadb-client
+    - libmariadb-dev
+-
+  name: systemctl start&enable mariadb
+  systemd:
+    state: started
+    enabled: yes
+    name: mariadb

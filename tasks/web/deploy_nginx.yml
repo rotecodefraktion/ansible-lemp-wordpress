@@ -1,0 +1,41 @@
+- name: Add dependencies for PHP versions (Debian).
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg2
+    state: present
+
+- name: Add Nginx apt key (Debian).
+  apt_key:
+    url: https://nginx.org/keys/nginx_signing.key
+    id: 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+    state: present
+
+- name: Add Nginx Repository
+  apt_repository:
+    repo: "deb http://nginx.org/packages/mainline/debian {{ ansible_distribution_release }} nginx"
+    state: present
+  register: nginx_repo
+
+- name: Update apt caches after repo is added (Debian).
+  apt: update_cache=true
+  when:
+    - nginx_repo
+
+- name: Pin Nginx Repoistory over default Repository
+  template:
+    src: "./templates/99nginx.j2"
+    dest: "/etc/apt/preferences.d/99nginx"
+    owner: root
+    group: root
+    mode: 0644
+- name: ensure nginx is at the latest version
+  apt:
+    name: nginx
+    state: latest
+- name: start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes

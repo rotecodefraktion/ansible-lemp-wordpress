@@ -1,0 +1,73 @@
+- name: Check if wordpress exists
+  stat:
+    path: "{{ wordpress_home }}/wp-admin"
+  register: out
+
+#- name: Unarchive wordpress to /var/www/html
+#  unarchive:
+#    src: https://wordpress.org/latest.tar.gz
+#    dest: /var/www/html
+#    remote_src: yes
+#  when: wordpress_exists == false
+
+#- name: Set user rights
+#  file:
+#    path: /var/www/html/wordpress
+#    state: directory
+#    recurse: yes
+#    owner: www-data
+#    group: www-data
+#    mode: '0755'
+
+
+- name: print result
+  debug:
+    msg: "{{ out }}"
+
+- name: Installing wp-cli
+  get_url:
+    url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    dest: /usr/local/bin/wp
+    mode: '0755'
+
+- name: Allow www-data to login with /bin/sh
+  user:
+    name: www-data
+    shell: /bin/sh
+
+- name: Download wordpress
+  command:
+    cmd: "/usr/local/bin/wp core download --version=5.9-RC2 --path={{ wordpress_home }}"
+  become: yes
+  become_user: www-data
+  become_method: sudo
+  when: out.stat.exists == false
+
+- name: SetUp Wordpress I Create configuration
+  command:
+    cmd: "/usr/local/bin/wp config create --path={{ wordpress_home }} --dbname={{ wordpress_db_name }} --dbhost={{ wordpress_dbhost }} --dbuser={{ wordpress_user }} --dbpass={{ wordpress_user_password }} --locale=de_DE "
+  become: yes
+  become_user: www-data
+  become_method: sudo
+  register: result
+
+- name: print result
+  debug:
+    msg: "{{ result }}"
+
+- name: Setup Wordpress II Install Core Wordpress
+  command:
+    cmd: "/usr/local/bin/wp core install --path={{ wordpress_home }} --url=web1.{{ fqdn }} --title=rotecodefraktion --admin_user={{ wordpress_admin }} --admin_password={{ wordpress_admin_password }} --admin_email={{ wordpress_admin_email }}"
+  become: yes
+  become_user: www-data
+  become_method: sudo
+  register: result2
+
+- name: print result
+  debug:
+    msg: "{{ result2 }}"
+
+- name: Disallow www-data to login
+  user:
+    name: www-data
+    shell: /usr/sbin/nologin

@@ -1,0 +1,7 @@
+reboot: no
+wordpress_db_name: wordpress_db
+wordpress_user: db_user
+wordpress_admin: david
+wordpress_admin_email: david@rotecodefraktion.de
+wordpress_dbhost: 10.1.0.13
+wordpress_home: /var/www/html/wordpress

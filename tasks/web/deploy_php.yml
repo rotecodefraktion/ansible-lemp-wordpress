@@ -1,0 +1,52 @@
+
+- name: Add Ondrej Sury's apt key (Debian).
+  apt_key:
+    url: https://packages.sury.org/php/apt.gpg
+    id: 15058500A0235D97F5D10063B188E2B695BD4743
+    state: present
+
+- name: Add Ondrej Sury's repo (Debian).
+  apt_repository:
+    repo: "deb https://packages.sury.org/php/ {{ ansible_distribution_release }} main"
+    state: present
+  register: php_ondrej_debian_repo
+
+- name: Update apt caches after repo is added (Debian).
+  apt: update_cache=true
+  when:
+    - php_ondrej_debian_repo.changed
+
+- name: Install PHP 8.1 FPM
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - php8.1
+    - php8.1-fpm
+    - php8.1-cli
+
+- name: Start PHP 8.1 FPM
+  service:
+    name: php8.1-fpm
+    state: started
+    enabled: yes
+
+- name: Install PHP 8.1 extensions
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - php8.1-gd
+    - php8.1-mysqli
+    - php8.1-mysql
+    - php8.1-curl
+    - php8.1-xml
+    - php8.1-opcache
+    - php8.1-imagick
+    - php8.1-exif
+    - php8.1-zip
+    - php8.1-mcrypt
+    - php8.1-pspell
+    - php8.1-redis
+    - php8.1-sockets
+    - php8.1-ssh2

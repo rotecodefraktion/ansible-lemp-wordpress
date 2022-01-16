@@ -1,0 +1,52 @@
+- name: update mysql root password for all root accounts
+  mysql_user:
+    name: root
+    host: localhost
+    password: "{{ root_db_password }}"
+
+- name: Update MariaDB root password
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    password: "{{ root_db_password }}"
+    login_user: root
+    login_password: "{{ root_db_password }}"
+  with_items:
+    "{{ mariabdb_hosts_allowed }}"
+
+- name: ensure anonymous users are not in the database
+  mysql_user:
+    name: ''
+    host: "{{ item }}"
+    login_user: root
+    login_password: "{{ root_db_password }}"
+    state: absent
+  with_items:
+    - localhost
+    - "{{ inventory_hostname }}"
+-
+  name: remove the test database
+  mysql_db:
+    name: test
+    login_user: root
+    login_password: "{{ root_db_password }}"
+    state: absent
+-
+  name: Create .my.cnf
+  template:
+    src: "./templates/my.cnf.j2"
+    dest: "~/.my.cnf"
+    owner: root
+    group: root
+    mode: 0600
+-
+  name: Set login_host to internal login_password
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: 'bind-address\s*= 127.0.0.1'
+    line: "bind-address = {{ wordpress_dbhost }}"
+-
+  name: systemctl restart mariadb
+  systemd:
+    state: restarted
+    name: mariadb
